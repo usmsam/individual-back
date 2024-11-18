@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String        @unique
+  password     String
+  role         Role          @default(APPLICANT)
+  createdAt    DateTime      @default(now())
+  companies    Company[] // Связь с компаниями
+  applications Application[] // Связь с откликами
+  Resume       Resume[]
+}
+
+model Company {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  location    String?
+  employerId  Int
+  employer    User      @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  vacancies   Vacancy[] // Связь с вакансиями
+}
+
+model Vacancy {
+  id           Int           @id @default(autoincrement())
+  title        String
+  description  String
+  salary       Float?
+  location     String?
+  companyId    Int
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+  applications Application[] // Связь с откликами
+}
+
+model Application {
+  id          Int               @id @default(autoincrement())
+  userId      Int
+  vacancyId   Int
+  coverLetter String?
+  status      ApplicationStatus @default(PENDING)
+  appliedAt   DateTime          @default(now())
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vacancy     Vacancy           @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
+}
+
+model Resume {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  skills      String[] // Массив навыков
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Role {
+  APPLICANT
+  EMPLOYER
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
