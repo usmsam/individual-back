@@ -38,12 +38,11 @@ const router = express.Router();
  *       500:
  *         description: Something went wrong
  */
-// Получение всех вакансий
 router.get("/", async (req, res) => {
   try {
     const vacancies = await prisma.vacancy.findMany({
       include: {
-        company: true, // Включаем информацию о компании
+        company: true,
       },
     });
     res.json(vacancies);
@@ -52,7 +51,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-  /**
+/**
  * @swagger
  * /vacancies/search:
  *   get:
@@ -85,12 +84,10 @@ router.get("/", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-// Поиск вакансий
 router.get("/search", async (req, res) => {
   const { query } = req.query;
 
   try {
-    // Проверяем, что параметр query был передан
     if (!query) {
       return res.status(400).json({ error: "Query parameter is required" });
     }
@@ -98,12 +95,12 @@ router.get("/search", async (req, res) => {
     const vacancies = await prisma.vacancy.findMany({
       where: {
         OR: [
-          { title: { contains: query, mode: "insensitive" } }, // Поиск по названию вакансии
-          { description: { contains: query, mode: "insensitive" } }, // Поиск по описанию вакансии
+          { title: { contains: query, mode: "insensitive" } },
+          { description: { contains: query, mode: "insensitive" } },
         ],
       },
       include: {
-        company: true, // Включаем информацию о компании
+        company: true,
       },
     });
 
@@ -147,7 +144,6 @@ router.get("/search", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-// Получение вакансии по ID
 router.get("/:id", async (req, res) => {
   const vacancyId = parseInt(req.params.id, 10);
 
@@ -155,7 +151,7 @@ router.get("/:id", async (req, res) => {
     const vacancy = await prisma.vacancy.findUnique({
       where: { id: vacancyId },
       include: {
-        company: true, // Включаем информацию о компании
+        company: true,
       },
     });
 
@@ -211,7 +207,6 @@ router.get("/:id", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-// Создание новой вакансии
 router.post("/", async (req, res) => {
   const { title, description, salary, location, companyId } = req.body;
 
@@ -228,7 +223,6 @@ router.post("/", async (req, res) => {
 
     res.status(201).json(newVacancy);
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
@@ -280,7 +274,6 @@ router.post("/", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-// Обновление вакансии
 router.put("/:id", async (req, res) => {
   const vacancyId = parseInt(req.params.id, 10);
   const { title, description, salary, location } = req.body;
@@ -313,8 +306,8 @@ router.put("/:id", async (req, res) => {
  *         name: id
  *         schema:
  *           type: integer
- *            required: true
- *            description: The ID of the job
+ *         required: true
+ *         description: The ID of the job
  *     responses:
  *       204:
  *         description: Job deleted successfully
@@ -323,7 +316,6 @@ router.put("/:id", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-// Удаление вакансии
 router.delete("/:id", async (req, res) => {
   const vacancyId = parseInt(req.params.id, 10);
 
