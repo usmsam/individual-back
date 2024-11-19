@@ -18,11 +18,12 @@ model User {
   name         String
   email        String        @unique
   password     String
+  phone        String
   role         Role          @default(APPLICANT)
   createdAt    DateTime      @default(now())
   companies    Company[] // Связь с компаниями
   applications Application[] // Связь с откликами
-  Resume       Resume[]
+  resumes      Resume[]
 }
 
 model Company {
@@ -33,18 +34,24 @@ model Company {
   employerId  Int
   employer    User      @relation(fields: [employerId], references: [id], onDelete: Cascade)
   vacancies   Vacancy[] // Связь с вакансиями
+  logo        String?
 }
 
 model Vacancy {
   id           Int           @id @default(autoincrement())
   title        String
   description  String
-  salary       Float?
+  salaryFrom   Float?
+  salaryTo     Float?
   location     String?
   companyId    Int
   company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   createdAt    DateTime      @default(now())
   applications Application[] // Связь с откликами
+  skills       String[] // Массив навыков
+  fulltime     Boolean
+  parttime     Boolean
+  remote       Boolean
 }
 
 model Application {
@@ -78,4 +85,6 @@ enum ApplicationStatus {
   PENDING
   ACCEPTED
   REJECTED
+  ARCHIVED
+  DELETED
 }

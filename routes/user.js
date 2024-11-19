@@ -33,6 +33,8 @@ const router = express.Router();
  *                     type: string
  *                   email:
  *                     type: string
+ *                   phone:
+ *                     type: string
  *       500:
  *         description: Something went wrong
  */
@@ -68,6 +70,8 @@ router.get("/", async (req, res) => {
  *                 type: string
  *               password:
  *                 type: string
+ *               phone:
+ *                 type: string
  *     responses:
  *       200:
  *         description: User created successfully
@@ -88,14 +92,14 @@ router.get("/", async (req, res) => {
 // Создание нового пользователя
 router.post("/", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone } = req.body;
 
     // Хешируем пароль
     const hashedPassword = await bcrypt.hash(password, 10); // 10 - это количество "раундов" для хеширования
 
     // Создаем нового пользователя с хешированным паролем
     const newUser = await prisma.user.create({
-      data: { name, email, password: hashedPassword },
+      data: { name, email, password: hashedPassword, phone },
     });
 
     res.json(newUser);
@@ -106,7 +110,7 @@ router.post("/", async (req, res) => {
 });
 /**
  * @swagger
- * /login:
+ * /users/login:
  *   post:
  *     summary: User login
  *     tags: [Users]

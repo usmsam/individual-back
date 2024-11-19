@@ -134,11 +134,27 @@ router.get("/search", async (req, res) => {
  *                 id:
  *                   type: integer
  *                 title:
- *                   type: string
+ *                  type: string
  *                 description:
  *                   type: string
- *                 salary:
+ *                 salaryFrom:
  *                   type: number
+ *                 salaryTo:
+ *                   type: number
+ *                 companyId:
+ *                   type: number
+ *                 location:
+ *                   type: string
+ *                 skills:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 fulltime:
+ *                   type: boolean
+ *                 parttime:
+ *                   type: boolean
+ *                 remote:
+ *                   type: boolean
  *       404:
  *         description: Job not found
  *       500:
@@ -182,12 +198,24 @@ router.get("/:id", async (req, res) => {
  *                 type: string
  *               description:
  *                 type: string
- *               salary:
+ *               salaryFrom:
+ *                 type: number
+ *               salaryTo:
  *                 type: number
  *               companyId:
  *                 type: number
  *               location:
  *                 type: string
+ *               skills:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               fulltime:
+ *                 type: boolean
+ *               parttime:
+ *                 type: boolean
+ *               remote:
+ *                 type: boolean
  *     responses:
  *       201:
  *         description: Job created successfully
@@ -202,23 +230,30 @@ router.get("/:id", async (req, res) => {
  *                   type: string
  *                 description:
  *                   type: string
- *                 salary:
+ *                 salaryFrom:
  *                   type: number
+ *                 salaryTo:
+ *                   type: number
+ *                 companyId:
+ *                   type: number
+ *                 location:
+ *                   type: string
+ *                 skills:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 fulltime:
+ *                   type: boolean
+ *                 parttime:
+ *                   type: boolean
+ *                 remote:
+ *                   type: boolean
  *       500:
  *         description: Something went wrong
  */
-router.post("/", async (req, res) => {
-  const { title, description, salary, location, companyId } = req.body;
-
-  try {
+router.post("/", async (req, res) => {  try {
     const newVacancy = await prisma.vacancy.create({
-      data: {
-        title,
-        description,
-        salary,
-        location,
-        companyId,
-      },
+      data: req.body,
     });
 
     res.status(201).json(newVacancy);

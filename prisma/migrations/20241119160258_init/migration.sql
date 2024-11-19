@@ -2,7 +2,7 @@
 CREATE TYPE "Role" AS ENUM ('APPLICANT', 'EMPLOYER');
 
 -- CreateEnum
-CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED');
+CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED', 'ARCHIVED', 'DELETED');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -10,6 +10,7 @@ CREATE TABLE "User" (
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
     "role" "Role" NOT NULL DEFAULT 'APPLICANT',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -23,6 +24,7 @@ CREATE TABLE "Company" (
     "description" TEXT,
     "location" TEXT,
     "employerId" INTEGER NOT NULL,
+    "logo" TEXT,
 
     CONSTRAINT "Company_pkey" PRIMARY KEY ("id")
 );
@@ -32,10 +34,15 @@ CREATE TABLE "Vacancy" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
-    "salary" DOUBLE PRECISION,
+    "salaryFrom" DOUBLE PRECISION,
+    "salaryTo" DOUBLE PRECISION,
     "location" TEXT,
     "companyId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "skills" TEXT[],
+    "fulltime" BOOLEAN NOT NULL,
+    "parttime" BOOLEAN NOT NULL,
+    "remote" BOOLEAN NOT NULL,
 
     CONSTRAINT "Vacancy_pkey" PRIMARY KEY ("id")
 );
@@ -52,6 +59,19 @@ CREATE TABLE "Application" (
     CONSTRAINT "Application_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Resume" (
+    "id" SERIAL NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "skills" TEXT[],
+    "userId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Resume_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -66,3 +86,6 @@ ALTER TABLE "Application" ADD CONSTRAINT "Application_userId_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "Application" ADD CONSTRAINT "Application_vacancyId_fkey" FOREIGN KEY ("vacancyId") REFERENCES "Vacancy"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Resume" ADD CONSTRAINT "Resume_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -100,6 +100,13 @@ router.post("/", async (req, res) => {
         employerId,
       },
     });
+    
+    if (newCompany) {
+      prisma.user.update({
+        where: { id: employerId },
+        data: { role: "EMPLOYER" },
+      });
+    }
 
     res.status(201).json(newCompany);
   } catch (error) {
