@@ -2,8 +2,22 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
+import jwt from 'jsonwebtoken'
+import { authenticateToken } from "./authenticateToken.js";
+
+const SECRET_KEY = process.env.SECRET_KEY;
 
 const router = express.Router();
+/**
+ * @swagger
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ */
+
 /**
  * @swagger
  * tags:
@@ -38,7 +52,6 @@ const router = express.Router();
  *       500:
  *         description: Something went wrong
  */
-// Получение всех пользователей
 router.get("/", async (req, res) => {
   try {
     const users = await prisma.user.findMany({
@@ -89,7 +102,6 @@ router.get("/", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-// Создание нового пользователя
 router.post("/", async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
@@ -149,7 +161,6 @@ router.post("/", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-// Авторизация пользователя
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -168,7 +179,18 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Invalid password" });
     }
 
-    res.json({ message: "Login successful", user });
+    // Генерация JWT
+    const token = jwt.sign(
+      { id: user.id, email: user.email }, // payload токена
+      SECRET_KEY, // секретный ключ
+      { expiresIn: "1h" } // время жизни токена
+    );
+
+    res.json({
+      message: "Login successful",
+      token, // возвращаем токен
+      user: { id: user.id, email: user.email, name: user.name }, // минимальная информация о пользователе
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Something went wrong" });
@@ -223,7 +245,6 @@ router.post("/login", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-// Обновление пользователя
 router.put("/:id", async (req, res) => {
   const userId = parseInt(req.params.id, 10);
   const { name, email, password, role } = req.body;
@@ -244,5 +265,94 @@ router.put("/:id", async (req, res) => {
     res.status(400).json({ error: "Could not update user" });
   }
 });
+/**
+ * @swagger
+ * /users/me:
+ *   get:
+ *     summary: Get the current user's information
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: [] # Использование токена авторизации
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the user's information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 name:
+ *                   type: string
+ *                   example: "John Doe"
+ *                 email:
+ *                   type: string
+ *                   example: "johndoe@example.com"
+ *                 role:
+ *                   type: string
+ *                   example: "user"
+ *       401:
+ *         description: Unauthorized request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Authorization token is missing or invalid"
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "User not found"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Something went wrong"
+ */
+router.get("/me", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id; // ID пользователя из токена
+
+    // Получение данных пользователя
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        applications: true,
+        companies: true,
+        phone: true,
+        resumes: true
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
 
 export default router;
