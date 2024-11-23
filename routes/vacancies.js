@@ -134,6 +134,7 @@ router.get('/:id', async (req, res) => {
       where: { id: vacancyId },
       include: {
         company: true,
+        applications: true,
       },
     });
 

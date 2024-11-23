@@ -44,7 +44,6 @@ const upload = multer({ storage });
  *               - description
  *               - location
  *               - employerId
- *               - logo
  *             properties:
  *               name:
  *                 type: string
@@ -116,11 +115,7 @@ router.post('/', upload.single('logo'), async (req, res) => {
       return res.status(400).json({ error: 'Employer not found' });
     }
 
-    if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
-    }
-
-    const filePath = `/uploads/${req.file.filename}`;
+    const filePath = req.file ? `/uploads/${req.file.filename}` : null;
 
     const newCompany = await prisma.company.create({
       data: {

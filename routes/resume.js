@@ -1,5 +1,5 @@
-import express from "express";
-import { PrismaClient } from "@prisma/client";
+import express from 'express';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -40,13 +40,18 @@ const router = express.Router();
  *                   userId:
  *                     type: integer
  */
-router.get("/", async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const resumes = await prisma.resume.findMany();
+    const resumes = await prisma.resume.findMany({
+      include: {
+        user: true,
+        userId: false,
+      },
+    });
     res.json(resumes);
   } catch (error) {
-    console.error("Error fetching resumes:", error);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error('Error fetching resumes:', error);
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -86,7 +91,7 @@ router.get("/", async (req, res) => {
  *       404:
  *         description: Резюме не найдено
  */
-router.get("/:id", async (req, res) => {
+router.get('/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -95,13 +100,13 @@ router.get("/:id", async (req, res) => {
     });
 
     if (!resume) {
-      return res.status(404).json({ error: "Resume not found" });
+      return res.status(404).json({ error: 'Resume not found' });
     }
 
     res.json(resume);
   } catch (error) {
-    console.error("Error fetching resume:", error);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error('Error fetching resume:', error);
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -149,7 +154,7 @@ router.get("/:id", async (req, res) => {
  *                 userId:
  *                   type: integer
  */
-router.post("/", async (req, res) => {
+router.post('/', async (req, res) => {
   const { title, description, skills, userId } = req.body;
 
   try {
@@ -164,8 +169,8 @@ router.post("/", async (req, res) => {
 
     res.status(201).json(newResume);
   } catch (error) {
-    console.error("Error creating resume:", error);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error('Error creating resume:', error);
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -222,7 +227,7 @@ router.post("/", async (req, res) => {
  *       404:
  *         description: Резюме не найдено
  */
-router.put("/:id", async (req, res) => {
+router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const { title, description, skills } = req.body;
 
@@ -238,8 +243,8 @@ router.put("/:id", async (req, res) => {
 
     res.json(updatedResume);
   } catch (error) {
-    console.error("Error updating resume:", error);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error('Error updating resume:', error);
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -262,7 +267,7 @@ router.put("/:id", async (req, res) => {
  *       404:
  *         description: Резюме не найдено
  */
-router.delete("/:id", async (req, res) => {
+router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -271,17 +276,17 @@ router.delete("/:id", async (req, res) => {
     });
 
     if (!resume) {
-      return res.status(404).json({ error: "Resume not found" });
+      return res.status(404).json({ error: 'Resume not found' });
     }
 
     await prisma.resume.delete({
       where: { id: parseInt(id) },
     });
 
-    res.status(200).json({ message: "Resume deleted successfully" });
+    res.status(200).json({ message: 'Resume deleted successfully' });
   } catch (error) {
-    console.error("Error deleting resume:", error);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error('Error deleting resume:', error);
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
