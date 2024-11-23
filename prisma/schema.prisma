@@ -14,16 +14,17 @@ datasource db {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
-  name         String
-  email        String        @unique
-  password     String
-  phone        String
-  role         Role          @default(APPLICANT)
-  createdAt    DateTime      @default(now())
-  companies    Company[] // Связь с компаниями
-  applications Application[] // Связь с откликами
-  resumes      Resume[]
+  id               Int           @id @default(autoincrement())
+  name             String
+  email            String        @unique
+  password         String
+  phone            String
+  role             Role          @default(APPLICANT)
+  createdAt        DateTime      @default(now())
+  companies        Company[] // Связь с компаниями
+  applications     Application[] // Связь с откликами
+  resumes          Resume[]
+  verificationCode String?
 }
 
 model Company {

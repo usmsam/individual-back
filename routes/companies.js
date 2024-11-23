@@ -4,6 +4,22 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 const router = express.Router();
 
+import multer from 'multer';
+import path from 'path';
+
+// Настраиваем хранилище для файлов
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // Указываем папку для сохранения файлов
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname)); // Генерируем уникальное имя файла
+  },
+});
+
+const upload = multer({ storage });
+
 /**
  * @swagger
  * tags:
@@ -20,7 +36,7 @@ const router = express.Router();
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -28,6 +44,7 @@ const router = express.Router();
  *               - description
  *               - location
  *               - employerId
+ *               - logo
  *             properties:
  *               name:
  *                 type: string
@@ -41,6 +58,10 @@ const router = express.Router();
  *               employerId:
  *                 type: integer
  *                 description: The ID of the employer creating the company
+ *               logo:
+ *                 type: string
+ *                 format: binary
+ *                 description: The logo file for the company
  *     responses:
  *       201:
  *         description: Company created successfully
@@ -59,8 +80,11 @@ const router = express.Router();
  *                   type: string
  *                 employerId:
  *                   type: integer
+ *                 logo:
+ *                   type: string
+ *                   description: Path to the uploaded logo
  *       400:
- *         description: Employer not found
+ *         description: Employer not found or file missing
  *         content:
  *           application/json:
  *             schema:
@@ -80,30 +104,37 @@ const router = express.Router();
  *                   type: string
  *                   example: Something went wrong
  */
-router.post('/', async (req, res) => {
+router.post('/', upload.single('logo'), async (req, res) => {
   const { name, description, location, employerId } = req.body;
 
   try {
     const employer = await prisma.user.findUnique({
-      where: { id: employerId },
+      where: { id: Number(employerId) },
     });
 
     if (!employer) {
       return res.status(400).json({ error: 'Employer not found' });
     }
 
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const filePath = `/uploads/${req.file.filename}`;
+
     const newCompany = await prisma.company.create({
       data: {
         name,
         description,
         location,
-        employerId,
+        employerId: Number(employerId),
+        logo: filePath,
       },
     });
 
     if (newCompany) {
       prisma.user.update({
-        where: { id: employerId },
+        where: { id: Number(employerId) },
         data: { role: 'EMPLOYER' },
       });
     }

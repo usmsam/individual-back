@@ -1,5 +1,5 @@
-import express from "express";
-import { PrismaClient } from "@prisma/client";
+import express from 'express';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -10,7 +10,6 @@ const router = express.Router();
  *   name: Jobs
  *   description: Job management API
  */
-
 
 /**
  * @swagger
@@ -45,21 +44,25 @@ const router = express.Router();
  *       500:
  *         description: Something went wrong
  */
-router.get("/", async (req, res) => {
+router.get('/', async (req, res) => {
   const { query } = req.query;
 
   try {
     if (!query) {
-      const vacancies = await prisma.vacancy.findMany();
+      const vacancies = await prisma.vacancy.findMany({
+        include: {
+          company: true,
+        },
+      });
       res.json(vacancies);
-      return
+      return;
     }
 
     const vacancies = await prisma.vacancy.findMany({
       where: {
         OR: [
-          { title: { contains: query, mode: "insensitive" } },
-          { description: { contains: query, mode: "insensitive" } },
+          { title: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } },
         ],
       },
       include: {
@@ -69,7 +72,7 @@ router.get("/", async (req, res) => {
 
     res.json(vacancies);
   } catch (error) {
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -123,7 +126,7 @@ router.get("/", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-router.get("/:id", async (req, res) => {
+router.get('/:id', async (req, res) => {
   const vacancyId = parseInt(req.params.id, 10);
 
   try {
@@ -135,12 +138,12 @@ router.get("/:id", async (req, res) => {
     });
 
     if (!vacancy) {
-      return res.status(404).json({ error: "Vacancy not found" });
+      return res.status(404).json({ error: 'Vacancy not found' });
     }
 
     res.json(vacancy);
   } catch (error) {
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -214,14 +217,15 @@ router.get("/:id", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-router.post("/", async (req, res) => {  try {
+router.post('/', async (req, res) => {
+  try {
     const newVacancy = await prisma.vacancy.create({
       data: req.body,
     });
 
     res.status(201).json(newVacancy);
   } catch (error) {
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -272,7 +276,7 @@ router.post("/", async (req, res) => {  try {
  *       500:
  *         description: Something went wrong
  */
-router.put("/:id", async (req, res) => {
+router.put('/:id', async (req, res) => {
   const vacancyId = parseInt(req.params.id, 10);
   const { title, description, salary, location } = req.body;
 
@@ -289,7 +293,7 @@ router.put("/:id", async (req, res) => {
 
     res.json(updatedVacancy);
   } catch (error) {
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -314,7 +318,7 @@ router.put("/:id", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-router.delete("/:id", async (req, res) => {
+router.delete('/:id', async (req, res) => {
   const vacancyId = parseInt(req.params.id, 10);
 
   try {
@@ -324,7 +328,7 @@ router.delete("/:id", async (req, res) => {
 
     res.json(deletedVacancy);
   } catch (error) {
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
