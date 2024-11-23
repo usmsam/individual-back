@@ -11,49 +11,10 @@ const router = express.Router();
  *   description: Job management API
  */
 
-/**
- * @swagger
- * /vacancies:
- *   get:
- *     summary: Get all jobs
- *     tags: [Jobs]
- *     responses:
- *       200:
- *         description: A list of jobs
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                   title:
- *                     type: string
- *                   description:
- *                     type: string
- *                   salary:
- *                     type: number
- *       500:
- *         description: Something went wrong
- */
-router.get("/", async (req, res) => {
-  try {
-    const vacancies = await prisma.vacancy.findMany({
-      include: {
-        company: true,
-      },
-    });
-    res.json(vacancies);
-  } catch (error) {
-    res.status(500).json({ error: "Something went wrong" });
-  }
-});
 
 /**
  * @swagger
- * /vacancies/search:
+ * /vacancies:
  *   get:
  *     summary: Search for jobs
  *     tags: [Jobs]
@@ -84,12 +45,14 @@ router.get("/", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-router.get("/search", async (req, res) => {
+router.get("/", async (req, res) => {
   const { query } = req.query;
 
   try {
     if (!query) {
-      return res.status(400).json({ error: "Query parameter is required" });
+      const vacancies = await prisma.vacancy.findMany();
+      res.json(vacancies);
+      return
     }
 
     const vacancies = await prisma.vacancy.findMany({
