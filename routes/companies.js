@@ -1,5 +1,5 @@
-import express from "express";
-import { PrismaClient } from "@prisma/client";
+import express from 'express';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -80,7 +80,7 @@ const router = express.Router();
  *                   type: string
  *                   example: Something went wrong
  */
-router.post("/", async (req, res) => {
+router.post('/', async (req, res) => {
   const { name, description, location, employerId } = req.body;
 
   try {
@@ -89,7 +89,7 @@ router.post("/", async (req, res) => {
     });
 
     if (!employer) {
-      return res.status(400).json({ error: "Employer not found" });
+      return res.status(400).json({ error: 'Employer not found' });
     }
 
     const newCompany = await prisma.company.create({
@@ -100,18 +100,18 @@ router.post("/", async (req, res) => {
         employerId,
       },
     });
-    
+
     if (newCompany) {
       prisma.user.update({
         where: { id: employerId },
-        data: { role: "EMPLOYER" },
+        data: { role: 'EMPLOYER' },
       });
     }
 
     res.status(201).json(newCompany);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -157,13 +157,17 @@ router.post("/", async (req, res) => {
  *                   type: string
  *                   example: Something went wrong
  */
-router.get("/", async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const companies = await prisma.company.findMany();
+    const companies = await prisma.company.findMany({
+      include: {
+        vacancies: true,
+      },
+    });
     res.json(companies);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -245,7 +249,7 @@ router.get("/", async (req, res) => {
  *                   type: string
  *                   example: Something went wrong
  */
-router.get("/:id", async (req, res) => {
+router.get('/:id', async (req, res) => {
   const companyId = parseInt(req.params.id, 10);
 
   try {
@@ -258,13 +262,13 @@ router.get("/:id", async (req, res) => {
     });
 
     if (!company) {
-      return res.status(404).json({ error: "Company not found" });
+      return res.status(404).json({ error: 'Company not found' });
     }
 
     res.json(company);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -344,7 +348,7 @@ router.get("/:id", async (req, res) => {
  *                   type: string
  *                   example: Could not update company
  */
-router.put("/:id", async (req, res) => {
+router.put('/:id', async (req, res) => {
   const companyId = parseInt(req.params.id, 10);
   const { name, description, location, employerId } = req.body;
 
@@ -356,7 +360,7 @@ router.put("/:id", async (req, res) => {
       });
 
       if (!employer) {
-        return res.status(400).json({ error: "Employer not found" });
+        return res.status(400).json({ error: 'Employer not found' });
       }
     }
 
@@ -373,7 +377,7 @@ router.put("/:id", async (req, res) => {
     res.json(updatedCompany);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Could not update company" });
+    res.status(500).json({ error: 'Could not update company' });
   }
 });
 
@@ -422,7 +426,7 @@ router.put("/:id", async (req, res) => {
  *                   type: string
  *                   example: Something went wrong
  */
-router.delete("/:id", async (req, res) => {
+router.delete('/:id', async (req, res) => {
   const companyId = parseInt(req.params.id, 10);
 
   try {
@@ -432,7 +436,7 @@ router.delete("/:id", async (req, res) => {
     });
 
     if (!company) {
-      return res.status(404).json({ error: "Company not found" });
+      return res.status(404).json({ error: 'Company not found' });
     }
 
     // Удаление компании
@@ -440,10 +444,10 @@ router.delete("/:id", async (req, res) => {
       where: { id: companyId },
     });
 
-    res.status(200).json({ message: "Company deleted successfully" });
+    res.status(200).json({ message: 'Company deleted successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
