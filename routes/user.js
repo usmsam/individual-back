@@ -1,9 +1,9 @@
-import express from "express";
-import bcrypt from "bcryptjs";
-import { PrismaClient } from "@prisma/client";
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
-import jwt from 'jsonwebtoken'
-import { authenticateToken } from "./authenticateToken.js";
+import jwt from 'jsonwebtoken';
+import { authenticateToken } from './authenticateToken.js';
 
 const SECRET_KEY = process.env.SECRET_KEY;
 
@@ -52,7 +52,7 @@ const router = express.Router();
  *       500:
  *         description: Something went wrong
  */
-router.get("/", async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       include: {
@@ -61,7 +61,7 @@ router.get("/", async (req, res) => {
     });
     res.json(users);
   } catch (error) {
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 /**
@@ -102,7 +102,7 @@ router.get("/", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-router.post("/", async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
 
@@ -117,7 +117,7 @@ router.post("/", async (req, res) => {
     res.json(newUser);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 /**
@@ -161,7 +161,7 @@ router.post("/", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-router.post("/login", async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -169,31 +169,28 @@ router.post("/login", async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      return res.status(400).json({ error: "User not found" });
+      return res.status(400).json({ error: 'User not found' });
     }
 
     // Сравниваем введенный пароль с хешированным паролем из базы
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(400).json({ error: "Invalid password" });
+      return res.status(400).json({ error: 'Invalid password' });
     }
 
-    // Генерация JWT
-    const token = jwt.sign(
-      { id: user.id, email: user.email }, // payload токена
-      SECRET_KEY, // секретный ключ
-      { expiresIn: "1h" } // время жизни токена
-    );
+    const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, {
+      expiresIn: '1h',
+    });
 
     res.json({
-      message: "Login successful",
-      token, // возвращаем токен
-      user: { id: user.id, email: user.email, name: user.name }, // минимальная информация о пользователе
+      message: 'Login successful',
+      token,
+      user,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 /**
@@ -245,7 +242,7 @@ router.post("/login", async (req, res) => {
  *       500:
  *         description: Something went wrong
  */
-router.put("/:id", async (req, res) => {
+router.put('/:id', async (req, res) => {
   const userId = parseInt(req.params.id, 10);
   const { name, email, password, role } = req.body;
 
@@ -261,8 +258,8 @@ router.put("/:id", async (req, res) => {
     });
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.error("Error updating user:", error);
-    res.status(400).json({ error: "Could not update user" });
+    console.error('Error updating user:', error);
+    res.status(400).json({ error: 'Could not update user' });
   }
 });
 /**
@@ -324,7 +321,7 @@ router.put("/:id", async (req, res) => {
  *                   type: string
  *                   example: "Something went wrong"
  */
-router.get("/me", authenticateToken, async (req, res) => {
+router.get('/me', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id; // ID пользователя из токена
 
@@ -339,20 +336,19 @@ router.get("/me", authenticateToken, async (req, res) => {
         applications: true,
         companies: true,
         phone: true,
-        resumes: true
+        resumes: true,
       },
     });
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ error: 'User not found' });
     }
 
     res.json(user);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
-
 
 export default router;

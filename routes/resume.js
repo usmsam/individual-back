@@ -97,6 +97,9 @@ router.get('/:id', async (req, res) => {
   try {
     const resume = await prisma.resume.findUnique({
       where: { id: parseInt(id) },
+      include: {
+        user: true,
+      },
     });
 
     if (!resume) {

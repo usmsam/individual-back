@@ -62,7 +62,7 @@ model Application {
   coverLetter String?
   status      ApplicationStatus @default(PENDING)
   appliedAt   DateTime          @default(now())
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
   vacancy     Vacancy           @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
 }
 

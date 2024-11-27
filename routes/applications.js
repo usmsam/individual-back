@@ -1,8 +1,10 @@
-import express from "express";
-import { PrismaClient } from "@prisma/client";
+import express from 'express';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const router = express.Router();
+
+import { authenticateToken } from './authenticateToken.js';
 
 /**
  * @swagger
@@ -24,10 +26,6 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               userId:
- *                 type: integer
- *                 description: The ID of the user applying for the job
- *                 example: 1
  *               vacancyId:
  *                 type: integer
  *                 description: The ID of the vacancy the user is applying for
@@ -75,8 +73,9 @@ const router = express.Router();
  *                   type: string
  *                   example: "Something went wrong"
  */
-router.post("/", async (req, res) => {
-  const { userId, vacancyId, coverLetter } = req.body;
+router.post('/', authenticateToken, async (req, res) => {
+  const { vacancyId, coverLetter } = req.body; // Получаем только `vacancyId` и `coverLetter`
+  const userId = req.user.id; // `userId` из middleware
 
   try {
     const application = await prisma.application.create({
@@ -84,14 +83,15 @@ router.post("/", async (req, res) => {
         userId,
         vacancyId,
         coverLetter,
-        status: "PENDING", // Начальный статус отклика
+        status: 'PENDING', // Начальный статус отклика
       },
     });
 
     res.status(201).json(application);
   } catch (error) {
-    console.error("Error creating application:", error);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error('Error creating application:', error);
+    console.log(userId);
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -169,7 +169,7 @@ router.post("/", async (req, res) => {
  *                   type: string
  *                   example: "Something went wrong"
  */
-router.patch("/:id", async (req, res) => {
+router.patch('/:id', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
@@ -181,8 +181,8 @@ router.patch("/:id", async (req, res) => {
 
     res.json(updatedApplication);
   } catch (error) {
-    console.error("Error updating application status:", error);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error('Error updating application status:', error);
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -267,7 +267,7 @@ router.patch("/:id", async (req, res) => {
  *                   type: string
  *                   example: "Something went wrong"
  */
-router.get("/user/:userId", async (req, res) => {
+router.get('/user/:userId', async (req, res) => {
   const { userId } = req.params;
 
   try {
@@ -280,8 +280,8 @@ router.get("/user/:userId", async (req, res) => {
 
     res.json(applications);
   } catch (error) {
-    console.error("Error fetching applications:", error);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error('Error fetching applications:', error);
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
@@ -366,7 +366,7 @@ router.get("/user/:userId", async (req, res) => {
  *                   type: string
  *                   example: "Something went wrong"
  */
-router.get("/vacancy/:vacancyId", async (req, res) => {
+router.get('/vacancy/:vacancyId', async (req, res) => {
   const { vacancyId } = req.params;
 
   try {
@@ -379,8 +379,8 @@ router.get("/vacancy/:vacancyId", async (req, res) => {
 
     res.json(applications);
   } catch (error) {
-    console.error("Error fetching applications:", error);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error('Error fetching applications:', error);
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
